@@ -420,7 +420,7 @@ export default function App() {
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 4 }}>
           <p style={{ color: C.muted, fontSize: 11, margin: "0 0 2px", lineHeight: 1.7 }}>
-            © 2026 Designed and Developed by{" "}
+            © 2026 Developed by{" "}
             <span style={{ color: C.blue, fontWeight: 600 }}>Lelius Lawas</span>
           </p>
           <p style={{ color: C.muted, fontSize: 11, margin: 0, opacity: 0.6, lineHeight: 1.7 }}>
