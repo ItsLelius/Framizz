@@ -1,2 +1,18 @@
+# dependencies
 node_modules/
+
+# Tailwind build output (generated file)
 src/css/output.css
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
