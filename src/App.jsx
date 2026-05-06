@@ -1,7 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 
 // ── Swap this to change the frame ─────────────────────────────
-const FRAME_SRC = "/src/assets/frame.png";
+import frameSrc from "./assets/frame.png";
+import logoSrc from "./assets/logo.png";
+
+const FRAME_SRC = frameSrc;
 const OUTPUT_SIZE = 1080;
 const PREVIEW = 400;
 // ─────────────────────────────────────────────────────────────
@@ -467,7 +470,7 @@ export default function App() {
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 4 }}>
           <p style={{ color: C.muted, fontSize: 11, margin: "0 0 2px", lineHeight: 1.7 }}>
-            © 2026 Designed and Developed by{" "}
+            © 2026 Developed by{" "}
             <a
               href="https://lelius.vercel.app"
               target="_blank"
