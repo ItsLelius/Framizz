@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
   content: [
@@ -10,7 +9,7 @@ module.exports = {
       fontFamily: {
         sans: ['"DM Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
       }
-    },
+    }
   },
   plugins: [],
 }
