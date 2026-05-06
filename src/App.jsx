@@ -16,7 +16,6 @@ export default function App() {
   const [photo, setPhoto]             = useState(null);
   const [dragging, setDragging]       = useState(false);
   const [zoom, setZoom]               = useState(1);
-  const [iosMsg, setIosMsg]           = useState(false);
   const [hoverChoose, setHoverChoose] = useState(false);
   const [hoverSave, setHoverSave]     = useState(false);
   const [hoverToggle, setHoverToggle] = useState(false);
@@ -131,6 +130,7 @@ export default function App() {
     out.width = OUTPUT_SIZE;
     out.height = OUTPUT_SIZE;
     const ctx = out.getContext("2d");
+
     if (photoRef.current) {
       const img = photoRef.current;
       const s = transform.scale * zoom;
@@ -140,21 +140,58 @@ export default function App() {
         img.naturalWidth * s, img.naturalHeight * s
       );
     }
-    if (frameRef.current) ctx.drawImage(frameRef.current, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    if (frameRef.current) {
+      ctx.drawImage(frameRef.current, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
+    }
+
+    const dataUrl = out.toDataURL("image/png");
 
     if (isIOS()) {
-      const win = window.open();
-      win.document.write(
-        '<style>body{margin:0;background:#000;display:flex;align-items:center;' +
-        'justify-content:center;min-height:100vh}</style>' +
-        '<img src="' + out.toDataURL("image/png") + '" style="max-width:100%;max-height:100vh"/>'
-      );
-      setIosMsg(true);
-      setTimeout(() => setIosMsg(false), 5000);
+      // iOS: inject fullscreen overlay — no window.open timing issues
+      const overlay = document.createElement("div");
+      overlay.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.93);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 28px; box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      `;
+
+      overlay.innerHTML = `
+        <p style="
+          color: #fff; font-size: 15px; font-weight: 600;
+          margin: 0 0 6px; text-align: center; line-height: 1.5;
+        ">Hold the image below</p>
+        <p style="
+          color: #8a8f9a; font-size: 13px;
+          margin: 0 0 20px; text-align: center;
+        ">then tap <strong style="color:#1877F2;">Save to Photos</strong></p>
+        <img src="${dataUrl}" style="
+          max-width: 100%; max-height: 55vh;
+          border-radius: 14px;
+          box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+        "/>
+        <button id="ios-close" style="
+          margin-top: 24px;
+          background: #2a2a36; color: #fff;
+          border: none; border-radius: 10px;
+          padding: 12px 40px; font-size: 15px;
+          font-weight: 600; cursor: pointer;
+          font-family: inherit;
+          -webkit-tap-highlight-color: transparent;
+        ">Close</button>
+      `;
+
+      overlay.querySelector("#ios-close").addEventListener("click", () => {
+        document.body.removeChild(overlay);
+      });
+
+      document.body.appendChild(overlay);
     } else {
       const a = document.createElement("a");
       a.download = "framizz.png";
-      a.href = out.toDataURL("image/png");
+      a.href = dataUrl;
       a.click();
     }
   }
@@ -173,12 +210,14 @@ export default function App() {
       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
     </svg>
   );
+
   const MoonIcon = () => (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
   );
+
   const UploadIcon = () => (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -187,6 +226,7 @@ export default function App() {
       <polyline points="21 15 16 10 5 21"/>
     </svg>
   );
+
   const DownloadIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -234,18 +274,35 @@ export default function App() {
         {/* Logo row */}
         <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <img
+              src="/src/assets/logo.png"
+              alt="Framizz"
+              style={{
+                width: 34, height: 34, borderRadius: "50%",
+                objectFit: "cover",
+                boxShadow: "0 2px 8px rgba(24,119,242,0.35)",
+              }}
+              onError={e => {
+                // fallback to blue F circle if logo.png not found
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "flex";
+              }}
+            />
             <div style={{
+              display: "none",
               width: 34, height: 34, borderRadius: "50%",
               background: C.blue,
-              display: "flex", alignItems: "center", justifyContent: "center",
+              alignItems: "center", justifyContent: "center",
               boxShadow: "0 2px 8px rgba(24,119,242,0.35)",
             }}>
               <span style={{ color: "#fff", fontWeight: 900, fontSize: 16, fontStyle: "italic" }}>F</span>
             </div>
-            <span style={{ color: C.text, fontWeight: 800, fontSize: 22, letterSpacing: "-0.5px" }}>Framizz</span>
+            <span style={{ color: C.text, fontWeight: 800, fontSize: 22, letterSpacing: "-0.5px" }}>
+              Framizz
+            </span>
           </div>
 
-          {/* Toggle pill */}
+          {/* Dark/light toggle pill */}
           <button
             onClick={() => setDark(d => !d)}
             onMouseEnter={() => setHoverToggle(true)}
@@ -312,18 +369,6 @@ export default function App() {
           />
         </div>
 
-        {/* iOS tip */}
-        {iosMsg && (
-          <div style={{
-            background: "#fff8e1", border: "1px solid #ffe082",
-            borderRadius: 8, padding: "8px 14px",
-            fontSize: 12, color: "#795548",
-            width: "100%", textAlign: "center",
-          }}>
-            Opened in new tab — long press the image to Save to Photos
-          </div>
-        )}
-
         {/* Choose photo */}
         <label
           onMouseEnter={() => setHoverChoose(true)}
@@ -356,9 +401,10 @@ export default function App() {
           <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
         </label>
 
-        {/* Zoom + Download */}
+        {/* Zoom + Download — only after photo chosen */}
         {photo && (
           <div style={{ display: "flex", gap: 10, alignItems: "center", width: "100%" }}>
+            {/* Zoom slider */}
             <div style={{
               flex: 1,
               background: C.pill,
@@ -389,6 +435,7 @@ export default function App() {
               </svg>
             </div>
 
+            {/* Save button */}
             <button
               onClick={handleDownload}
               onMouseEnter={() => setHoverSave(true)}
@@ -420,8 +467,20 @@ export default function App() {
         {/* Footer */}
         <div style={{ textAlign: "center", marginTop: 4 }}>
           <p style={{ color: C.muted, fontSize: 11, margin: "0 0 2px", lineHeight: 1.7 }}>
-            © 2026 Developed by{" "}
-            <span style={{ color: C.blue, fontWeight: 600 }}>Lelius Lawas</span>
+            © 2026 Designed and Developed by{" "}
+            <a
+              href="https://lelius.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: C.blue,
+                fontWeight: 600,
+                textDecoration: "none",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              Lelius Lawas
+            </a>
           </p>
           <p style={{ color: C.muted, fontSize: 11, margin: 0, opacity: 0.6, lineHeight: 1.7 }}>
             College of Computing and Information Sciences
