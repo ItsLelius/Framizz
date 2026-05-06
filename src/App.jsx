@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // ── Swap this to change the frame ─────────────────────────────
 const FRAME_SRC = "/src/assets/frame.png";
@@ -12,18 +12,20 @@ function isIOS() {
 }
 
 export default function App() {
-  const [dark, setDark]         = useState(false);
-  const [photo, setPhoto]       = useState(null);
-  const [dragging, setDragging] = useState(false);
-  const [zoom, setZoom]         = useState(1);
-  const [iosMsg, setIosMsg]     = useState(false);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [dark, setDark]               = useState(false);
+  const [photo, setPhoto]             = useState(null);
+  const [dragging, setDragging]       = useState(false);
+  const [zoom, setZoom]               = useState(1);
+  const [iosMsg, setIosMsg]           = useState(false);
+  const [hoverChoose, setHoverChoose] = useState(false);
+  const [hoverSave, setHoverSave]     = useState(false);
+  const [hoverToggle, setHoverToggle] = useState(false);
+  const [transform, setTransform]     = useState({ x: 0, y: 0, scale: 1 });
 
-  const canvasRef  = useRef(null);
-  const frameRef   = useRef(null);
-  const photoRef   = useRef(null);
-  const dragStart  = useRef(null);
-  const fileRef    = useRef(null);
+  const canvasRef = useRef(null);
+  const frameRef  = useRef(null);
+  const photoRef  = useRef(null);
+  const dragStart = useRef(null);
 
   const C = {
     bg:      dark ? "#0f0f13" : "#f0f2f5",
@@ -32,7 +34,8 @@ export default function App() {
     text:    dark ? "#e4e6eb" : "#1c1e21",
     muted:   dark ? "#8a8f9a" : "#65676b",
     blue:    "#1877F2",
-    card:    dark ? "#16161e" : "#f7f8fa",
+    blueDk:  "#1464d8",
+    pill:    dark ? "#2a2a36" : "#e4e6eb",
   };
 
   useEffect(() => {
@@ -49,7 +52,6 @@ export default function App() {
     if (!c) return;
     const ctx = c.getContext("2d");
     ctx.clearRect(0, 0, PREVIEW, PREVIEW);
-
     const sq = 16;
     for (let r = 0; r < PREVIEW / sq; r++) {
       for (let col = 0; col < PREVIEW / sq; col++) {
@@ -59,7 +61,6 @@ export default function App() {
         ctx.fillRect(col * sq, r * sq, sq, sq);
       }
     }
-
     if (photoRef.current) {
       const img = photoRef.current;
       const s = transform.scale * zoom;
@@ -70,7 +71,6 @@ export default function App() {
         img.naturalHeight * s * ratio
       );
     }
-
     if (frameRef.current) {
       ctx.drawImage(frameRef.current, 0, 0, PREVIEW, PREVIEW);
     }
@@ -83,53 +83,46 @@ export default function App() {
     const img = new Image();
     img.onload = () => {
       photoRef.current = img;
-      const scale = Math.max(
-        OUTPUT_SIZE / img.naturalWidth,
-        OUTPUT_SIZE / img.naturalHeight
-      );
+      const scale = Math.max(OUTPUT_SIZE / img.naturalWidth, OUTPUT_SIZE / img.naturalHeight);
       const pr = PREVIEW / OUTPUT_SIZE;
-      const x = (PREVIEW - img.naturalWidth * scale * pr) / 2;
-      const y = (PREVIEW - img.naturalHeight * scale * pr) / 2;
-      setTransform({ x, y, scale });
+      setTransform({
+        x: (PREVIEW - img.naturalWidth * scale * pr) / 2,
+        y: (PREVIEW - img.naturalHeight * scale * pr) / 2,
+        scale,
+      });
       setZoom(1);
     };
     img.src = url;
     setPhoto(url);
   }
 
-  const onMouseDown = (e) => {
+  const onMouseDown = e => {
     setDragging(true);
-    dragStart.current = {
-      mx: e.clientX, my: e.clientY,
-      tx: transform.x, ty: transform.y
-    };
+    dragStart.current = { mx: e.clientX, my: e.clientY, tx: transform.x, ty: transform.y };
   };
-  const onMouseMove = (e) => {
+  const onMouseMove = e => {
     if (!dragging || !dragStart.current) return;
     setTransform(t => ({
       ...t,
       x: dragStart.current.tx + (e.clientX - dragStart.current.mx),
-      y: dragStart.current.ty + (e.clientY - dragStart.current.my)
+      y: dragStart.current.ty + (e.clientY - dragStart.current.my),
     }));
   };
   const onMouseUp = () => setDragging(false);
 
-  const onTouchStart = (e) => {
+  const onTouchStart = e => {
     const t = e.touches[0];
     setDragging(true);
-    dragStart.current = {
-      mx: t.clientX, my: t.clientY,
-      tx: transform.x, ty: transform.y
-    };
+    dragStart.current = { mx: t.clientX, my: t.clientY, tx: transform.x, ty: transform.y };
   };
-  const onTouchMove = (e) => {
+  const onTouchMove = e => {
     if (!dragging || !dragStart.current) return;
     e.preventDefault();
     const t = e.touches[0];
     setTransform(tr => ({
       ...tr,
       x: dragStart.current.tx + (t.clientX - dragStart.current.mx),
-      y: dragStart.current.ty + (t.clientY - dragStart.current.my)
+      y: dragStart.current.ty + (t.clientY - dragStart.current.my),
     }));
   };
 
@@ -138,30 +131,23 @@ export default function App() {
     out.width = OUTPUT_SIZE;
     out.height = OUTPUT_SIZE;
     const ctx = out.getContext("2d");
-
     if (photoRef.current) {
       const img = photoRef.current;
       const s = transform.scale * zoom;
       const ratio = OUTPUT_SIZE / PREVIEW;
       ctx.drawImage(img,
-        transform.x * ratio,
-        transform.y * ratio,
-        img.naturalWidth * s,
-        img.naturalHeight * s
+        transform.x * ratio, transform.y * ratio,
+        img.naturalWidth * s, img.naturalHeight * s
       );
     }
-    if (frameRef.current) {
-      ctx.drawImage(frameRef.current, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
-    }
+    if (frameRef.current) ctx.drawImage(frameRef.current, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
     if (isIOS()) {
-      // iOS: open in new tab so user can long-press Save
-      const dataUrl = out.toDataURL("image/png");
       const win = window.open();
       win.document.write(
-        '<style>body{margin:0;background:#000;display:flex;' +
-        'align-items:center;justify-content:center;min-height:100vh}</style>' +
-        '<img src="' + dataUrl + '" style="max-width:100%;max-height:100vh"/>'
+        '<style>body{margin:0;background:#000;display:flex;align-items:center;' +
+        'justify-content:center;min-height:100vh}</style>' +
+        '<img src="' + out.toDataURL("image/png") + '" style="max-width:100%;max-height:100vh"/>'
       );
       setIosMsg(true);
       setTimeout(() => setIosMsg(false), 5000);
@@ -173,8 +159,8 @@ export default function App() {
     }
   }
 
-  const ToggleIcon = () => dark ? (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+  const SunIcon = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <circle cx="12" cy="12" r="5"/>
       <line x1="12" y1="1" x2="12" y2="3"/>
@@ -186,21 +172,38 @@ export default function App() {
       <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
       <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
     </svg>
-  ) : (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+  );
+  const MoonIcon = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
     </svg>
   );
-
   const UploadIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
       <rect x="3" y="3" width="18" height="18" rx="3"/>
       <circle cx="8.5" cy="8.5" r="1.5"/>
       <polyline points="21 15 16 10 5 21"/>
     </svg>
   );
+  const DownloadIcon = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  );
+
+  const btnReset = {
+    border: "none",
+    outline: "none",
+    WebkitTapHighlightColor: "transparent",
+    WebkitAppearance: "none",
+    cursor: "pointer",
+    fontFamily: "inherit",
+  };
 
   return (
     <div style={{
@@ -215,62 +218,61 @@ export default function App() {
       transition: "background 0.25s",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       padding: "0 16px",
-      boxSizing: "border-box",
+      WebkitUserSelect: "none",
+      userSelect: "none",
+      WebkitTapHighlightColor: "transparent",
     }}>
-
-      {/* Inner container */}
       <div style={{
         width: "100%",
         maxWidth: 420,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 16,
+        gap: 14,
       }}>
 
-        {/* Top row: logo left, toggle right */}
-        <div style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
+        {/* Logo row */}
+        <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{
               width: 34, height: 34, borderRadius: "50%",
               background: C.blue,
               display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(24,119,242,0.35)",
             }}>
               <span style={{ color: "#fff", fontWeight: 900, fontSize: 16, fontStyle: "italic" }}>F</span>
             </div>
-            <span style={{ color: C.text, fontWeight: 800, fontSize: 22, letterSpacing: "-0.5px" }}>
-              Framizz
-            </span>
+            <span style={{ color: C.text, fontWeight: 800, fontSize: 22, letterSpacing: "-0.5px" }}>Framizz</span>
           </div>
 
           {/* Toggle pill */}
-          <button onClick={() => setDark(d => !d)} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            background: dark ? "#2a2a36" : "#e4e6eb",
-            border: "none",
-            borderRadius: 20,
-            padding: "6px 12px 6px 8px",
-            cursor: "pointer",
-            color: C.text,
-            fontSize: 12,
-            fontWeight: 600,
-            transition: "background 0.2s",
-          }}>
+          <button
+            onClick={() => setDark(d => !d)}
+            onMouseEnter={() => setHoverToggle(true)}
+            onMouseLeave={() => setHoverToggle(false)}
+            style={{
+              ...btnReset,
+              display: "flex", alignItems: "center", gap: 7,
+              background: hoverToggle ? (dark ? "#333344" : "#d4d6dc") : C.pill,
+              borderRadius: 20,
+              padding: "6px 12px 6px 6px",
+              color: C.text,
+              fontSize: 12,
+              fontWeight: 600,
+              transition: "background 0.18s, box-shadow 0.18s, transform 0.1s",
+              boxShadow: hoverToggle
+                ? "0 3px 12px rgba(0,0,0,0.13)"
+                : "0 1px 4px rgba(0,0,0,0.07)",
+              transform: hoverToggle ? "translateY(-1px)" : "none",
+            }}>
             <div style={{
-              width: 22, height: 22, borderRadius: "50%",
+              width: 24, height: 24, borderRadius: "50%",
               background: dark ? C.blue : "#fff",
               display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
               transition: "background 0.2s",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.15)"
             }}>
-              <ToggleIcon />
+              {dark ? <SunIcon /> : <MoonIcon />}
             </div>
             {dark ? "Light" : "Dark"}
           </button>
@@ -285,8 +287,9 @@ export default function App() {
           border: `1px solid ${C.border}`,
           background: C.surface,
           boxShadow: dark
-            ? "0 4px 24px rgba(0,0,0,0.5)"
-            : "0 2px 16px rgba(0,0,0,0.08)"
+            ? "0 8px 40px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.3)"
+            : "0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
+          transition: "box-shadow 0.25s",
         }}>
           <canvas
             ref={canvasRef}
@@ -309,131 +312,121 @@ export default function App() {
           />
         </div>
 
-        {/* iOS message */}
+        {/* iOS tip */}
         {iosMsg && (
           <div style={{
-            background: "#fff3cd",
-            border: "1px solid #ffc107",
-            borderRadius: 8,
-            padding: "8px 14px",
-            fontSize: 13,
-            color: "#856404",
-            width: "100%",
-            boxSizing: "border-box",
-            textAlign: "center",
+            background: "#fff8e1", border: "1px solid #ffe082",
+            borderRadius: 8, padding: "8px 14px",
+            fontSize: 12, color: "#795548",
+            width: "100%", textAlign: "center",
           }}>
-            Image opened in new tab — long press it to Save to Photos
+            Opened in new tab — long press the image to Save to Photos
           </div>
         )}
 
-        {/* Controls */}
-        <div style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}>
-
-          {/* Choose photo */}
-          <label style={{
+        {/* Choose photo */}
+        <label
+          onMouseEnter={() => setHoverChoose(true)}
+          onMouseLeave={() => setHoverChoose(false)}
+          style={{
+            ...btnReset,
+            width: "100%",
+            padding: "12px 0",
+            borderRadius: 10,
+            fontWeight: 600,
+            fontSize: 15,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            background: photo ? (dark ? "#2a2a36" : "#e4e6eb") : C.blue,
+            background: photo
+              ? (hoverChoose ? (dark ? "#333344" : "#d4d6dc") : C.pill)
+              : (hoverChoose ? C.blueDk : C.blue),
             color: photo ? C.text : "#fff",
-            padding: "11px 0",
-            borderRadius: 10,
-            fontWeight: 600,
-            fontSize: 15,
-            cursor: "pointer",
-            transition: "background 0.2s",
+            boxShadow: photo
+              ? (hoverChoose ? "0 3px 12px rgba(0,0,0,0.11)" : "0 1px 4px rgba(0,0,0,0.06)")
+              : (hoverChoose
+                  ? "0 6px 20px rgba(24,119,242,0.45)"
+                  : "0 2px 10px rgba(24,119,242,0.28)"),
+            transform: hoverChoose ? "translateY(-1px)" : "none",
+            transition: "background 0.15s, box-shadow 0.15s, transform 0.1s",
           }}>
-            <UploadIcon />
-            {photo ? "Change Photo" : "Choose Profile Picture"}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFile}
-              style={{ display: "none" }}
-            />
-          </label>
+          <UploadIcon />
+          {photo ? "Change Photo" : "Choose Profile Picture"}
+          <input type="file" accept="image/*" onChange={handleFile} style={{ display: "none" }} />
+        </label>
 
-          {/* Zoom + Download — only after photo chosen */}
-          {photo && (
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              {/* Zoom slider */}
-              <div style={{
-                flex: 1,
-                background: dark ? "#2a2a36" : "#e4e6eb",
-                borderRadius: 10,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke={C.muted} strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  <line x1="11" y1="8" x2="11" y2="14"/>
-                  <line x1="8" y1="11" x2="14" y2="11"/>
-                </svg>
-                <input
-                  type="range"
-                  min="50" max="300" value={Math.round(zoom * 100)}
-                  onChange={e => setZoom(Number(e.target.value) / 100)}
-                  style={{
-                    flex: 1, accentColor: C.blue,
-                    height: 4, cursor: "pointer"
-                  }}
-                />
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                  stroke={C.muted} strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-              </div>
+        {/* Zoom + Download */}
+        {photo && (
+          <div style={{ display: "flex", gap: 10, alignItems: "center", width: "100%" }}>
+            <div style={{
+              flex: 1,
+              background: C.pill,
+              borderRadius: 10,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.06)",
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke={C.muted} strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="11" y1="8" x2="11" y2="14"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              <input
+                type="range" min="50" max="300"
+                value={Math.round(zoom * 100)}
+                onChange={e => setZoom(Number(e.target.value) / 100)}
+                style={{ flex: 1, accentColor: C.blue, cursor: "pointer" }}
+              />
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke={C.muted} strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
 
-              {/* Download */}
-              <button onClick={handleDownload} style={{
-                background: C.blue,
+            <button
+              onClick={handleDownload}
+              onMouseEnter={() => setHoverSave(true)}
+              onMouseLeave={() => setHoverSave(false)}
+              style={{
+                ...btnReset,
+                background: hoverSave ? C.blueDk : C.blue,
                 color: "#fff",
-                border: "none",
                 borderRadius: 10,
-                padding: "10px 18px",
+                padding: "10px 20px",
                 fontWeight: 700,
                 fontSize: 14,
-                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
                 whiteSpace: "nowrap",
+                boxShadow: hoverSave
+                  ? "0 6px 20px rgba(24,119,242,0.50)"
+                  : "0 2px 10px rgba(24,119,242,0.28)",
+                transform: hoverSave ? "translateY(-1px)" : "none",
+                transition: "background 0.15s, box-shadow 0.15s, transform 0.1s",
               }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Save
-              </button>
-            </div>
-          )}
-        </div>
+              <DownloadIcon />
+              Save
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
-        <p style={{
-          color: C.muted,
-          fontSize: 11,
-          margin: 0,
-          textAlign: "center",
-          letterSpacing: "0.1px",
-        }}>
-          © 2026 Designed and Developed by{" "}
-          <span style={{ color: C.blue, fontWeight: 600 }}>Lelius Lawas</span>
-        </p>
+        <div style={{ textAlign: "center", marginTop: 4 }}>
+          <p style={{ color: C.muted, fontSize: 11, margin: "0 0 2px", lineHeight: 1.7 }}>
+            © 2026 Designed and Developed by{" "}
+            <span style={{ color: C.blue, fontWeight: 600 }}>Lelius Lawas</span>
+          </p>
+          <p style={{ color: C.muted, fontSize: 11, margin: 0, opacity: 0.6, lineHeight: 1.7 }}>
+            College of Computing and Information Sciences
+          </p>
+        </div>
 
       </div>
     </div>
