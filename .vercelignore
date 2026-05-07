@@ -1,4 +1,0 @@
-# Vercel build ignore
-node_modules/
-.git/
-.gitignore
