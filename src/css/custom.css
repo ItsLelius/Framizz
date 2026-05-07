@@ -1,0 +1,208 @@
+*, *::before, *::after {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    /* ── LIGHT THEME ── */
+    body {
+      background: #f0f4fb;
+      color: #1a1f2e;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    /* ── DARK THEME ── */
+    body.dark {
+      background: #0e1117;
+      color: #e2e8f0;
+    }
+
+    canvas {
+      touch-action: none;
+      display: block;
+    }
+
+    input[type="range"] {
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+
+    /* ── ZOOM SLIDER TRACK ── */
+    input[type="range"].zoom-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 9999px;
+      outline: none;
+      cursor: pointer;
+      background: linear-gradient(
+        to right,
+        #3b82f6 var(--val, 33%),
+        #cbd5e1 var(--val, 33%)
+      );
+      transition: background 0.1s;
+    }
+
+    body.dark input[type="range"].zoom-slider {
+      background: linear-gradient(
+        to right,
+        #3b82f6 var(--val, 33%),
+        #334155 var(--val, 33%)
+      );
+    }
+
+    input[type="range"].zoom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 2.5px solid white;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.45);
+      cursor: pointer;
+    }
+
+    input[type="range"].zoom-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      border: 2.5px solid white;
+      box-shadow: 0 2px 8px rgba(59,130,246,0.45);
+      cursor: pointer;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(203,213,225,0.6);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      backdrop-filter: blur(16px);
+      border-radius: 24px;
+      transition: background 0.4s, border 0.4s, box-shadow 0.4s;
+    }
+
+    body.dark .card {
+      background: rgba(22,28,40,0.85);
+      border: 1px solid rgba(51,65,85,0.5);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.35);
+      transition: all 0.2s ease;
+      border-radius: 16px;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 8px 24px rgba(59,130,246,0.45);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.9);
+      color: #374151;
+      border: 1px solid rgba(203,213,225,0.7);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      transition: all 0.2s ease;
+      border-radius: 16px;
+      font-weight: 600;
+    }
+    .btn-secondary:hover {
+      background: white;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.11);
+      transform: translateY(-1px);
+    }
+
+    body.dark .btn-secondary {
+      background: rgba(30,41,59,0.85);
+      color: #e2e8f0;
+      border: 1px solid rgba(51,65,85,0.6);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    body.dark .btn-secondary:hover {
+      background: rgba(30,41,59,1);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+      transition: all 0.2s ease;
+      border-radius: 16px;
+      font-weight: 600;
+    }
+    .btn-save:hover {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      box-shadow: 0 8px 24px rgba(34,197,94,0.4);
+      transform: translateY(-1px);
+    }
+    .btn-save:active { transform: translateY(0); }
+
+    /* ── TOGGLE ── */
+    .toggle-track {
+      width: 52px;
+      height: 28px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      border: 1.5px solid rgba(203,213,225,0.8);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s, border 0.3s;
+      flex-shrink: 0;
+    }
+    body.dark .toggle-track {
+      background: #1e293b;
+      border-color: rgba(51,65,85,0.8);
+    }
+    .toggle-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: white;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    body.dark .toggle-thumb {
+      transform: translateX(24px);
+      background: #3b82f6;
+    }
+    .toggle-thumb svg {
+      width: 12px;
+      height: 12px;
+      pointer-events: none;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .canvas-inner { max-width: 320px !important; }
+    }
+    @media (max-width: 360px) {
+      .canvas-inner { max-width: 280px !important; }
+    }
